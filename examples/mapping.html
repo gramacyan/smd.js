@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script type="text/javascript" src="../smd.js"></script>
+    <script type="text/javascript">
+        define.debuggingEnabled = true;
+    </script>
+    <script type="text/javascript" src="../plugins/smd-mapping-plugin.js"></script>
+    <script type="text/javascript" src="../plugins/smd-autowire-plugin.js"></script>
+
+
+</head>
+<body>
+
+<h1 id="message"></h1>
+
+<script type="text/javascript">
+
+    // Maps one module id to another
+
+    define("My super duper Module - version 1.0", function() {
+        return "Super duper v1.0";
+    });
+
+    define("My super duper Module - version 1.1", function() {
+        return "Super duper v.1.1";
+    });
+
+    // Let's set up our mapping:
+    define(["smd-mapping-plugin"], function(plugin) {
+        plugin.map("My super duper Module - version 1.0", "superDuperModule_1_0");
+        plugin.map("My super duper Module - version 1.1", "superDuperModule_1_1");
+        plugin.map("superDuperModule_1_1", "superDuperModule"); // latest
+    });
+
+    // Autowired dep
+    define(function(superDuperModule) {
+        document.getElementById("message").innerText = superDuperModule;
+    });
+
+
+
+
+
+</script>
+
+</body>
+</html>

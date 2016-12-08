@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script type="text/javascript" src="../smd.js"></script>
+    <script type="text/javascript">
+        define.debuggingEnabled = true;
+    </script>
+    <script type="text/javascript" src="../plugins/smd-scan-plugin.js"></script>
+
+
+</head>
+<body>
+
+<h1 id="message"></h1>
+
+<script type="text/javascript">
+
+    // Loader will scan window for dep
+    // It this case it will wait until jQuery lib is ready loading (see script tag below)
+    define(["jQuery"], function(jQuery){
+        jQuery("#message").html("I'm set with jQuery");
+    });
+
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+
+</body>
+</html>
