@@ -16,7 +16,7 @@
 
 <script type="text/javascript">
 
-    define(["who"], function(who){
+    define("My module", ["who"], function(who){
         var el = document.getElementById("message");
         el.innerText = el.innerText.replace("${who}", who);
     });

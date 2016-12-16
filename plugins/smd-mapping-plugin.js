@@ -43,9 +43,6 @@
      *
      */
 
-    // todo check if we need to allow wildcard mapping:
-    // plugin.map("module v1.*", "module1");
-
     define("smd-mapping-plugin", ["smd-registry-plugin"], function(registryPlugin) {
 
         return {

@@ -189,16 +189,10 @@
             id = "_anon$" + idgen();
         }
         if (typeof factory !== "function") { // Direct definition: define("theMagicNumber", 7);
-            if (!deps) { // no dependencies, we can immediately resolve
-                PLUGINS.resolve(id, factory);
-                return;
-            }
-            else { // wait for the dependencies before resolving by wrapping the result in a factory function
-                var r = factory;
-                factory = function() {
-                    return r;
-                }
-            }
+            var res = factory;
+            factory = function() {
+                return res;
+            };
         }
         var module = {
             id: id,
@@ -264,7 +258,7 @@
                     return false; // abort! We'll initialize later when the dep is ready
                 }
                 dependencies[i] = dep;
-            };
+            }
         }
         var r = factory.apply(module, dependencies);
         var ms = new Date().getTime() - module.createdAt;
@@ -380,18 +374,15 @@
             debug("[smd-core] Attaching smd plugin '%'", plugin.name);
         }
         _plugins.push(plugin);
-        _plugins.sort(function(a, b) {
-            return (a["order"] ? a["order"] : 0)
-                - (b["order"] ? b["order"] : 0);
-        });
+        _plugins.sort(function(a, b) { return (a["order"] ? a["order"] : 0) - (b["order"] ? b["order"] : 0); });
     };
 
     /**
-     * Default plugin for in-memory store of the resolved results/modules
+     * Default plugin for in-memory store of the resolved module's factory results
      */
     var registryPlugin = {
         name: "smd-registry-plugin",
-        order: -1000,
+        order: -10000,
         registry: {
             "define": define
         },
@@ -403,7 +394,7 @@
         load: function(id) {
             var r = this.registry[id];
             debug("[%] Looking up dependency '%' in registry", this.name, id);
-            if (typeof r !== 'undefined') {
+            if (r !== UNSET) {
                 return r;
             }
         },
