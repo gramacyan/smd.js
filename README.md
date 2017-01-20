@@ -11,13 +11,13 @@ and dependency management using timeouts (`smd-initializer-plugin`).
 
 ```
 // Where is 'my-dependency'?
-define( "my-module", ["my-dependency"], function(dep) {
+define("my-module", ["my-dependency"], function(dep) {
     dep.touch();
 });
 // Ah, here it is
 define('my-dependency', { 
     touch: function() { /* blush response */ } 
-} );
+});
 ```
 
 #### Life cycle & plugins
@@ -46,8 +46,8 @@ smd-registry-plugin         A basic in memory store/loader that keeps track of
 ```
 
 It is deliberately chosen not to provide build-in remote script loading (using uri
-locators). In it's philosophy, that smd.js's core should remain generic, we therefore 
-cannot make assumptions about the environment. However you can implement it yourself 
+locators). In it's philosophy (that smd.js's core should remain generic) we cannot 
+make assumptions about the environment. However you can implement it yourself by 
 using the plugins-system.
 
 #### How-to plugins
