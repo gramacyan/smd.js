@@ -33,49 +33,6 @@
     "use strict";
 
     /**
-     * --
-     * smd.js or Simple Module Definition is a module definition library implementing the
-     * AMD (Abstract Module Definition) specification:
-     *
-     *      define (  id? , dependencies?, factory ) ;
-     *
-     *
-     * Compared to other AMD implementations smd.js aims to be small, extensible and
-     * framework independent. Out of the box it features non-linear module definitions
-     * and dependency management using timeouts.
-     *
-     *      define ( "my-module" , [ "my-dependency" ], function(dep) {
-     *          dep.touch();
-     *      } )
-     *      define ( "my-dependency" , function() { ... } );
-     *
-     *
-     * When a module is defined it will go through a series of life-cycle phases before
-     * being ready to use. These will be handled by the build-in plugin system. In fact
-     * smd.js's core features are actually plugin-ins:
-     *
-     *  smd-plugins-plugin          Keeps track of all plugins and delegates the module
-     *                              life-cycle to the plugins.
-     *
-     *  smd-initializer-plugin      Tries to initialize a module by first validating
-     *                              dependency ready-state and calling the factory method.
-     *                              It has a retry mechanism using timeouts.
-     *
-     *  smd-registry-plugin         A basic in memory store/loader that keeps track of
-     *                              all initialized modules.
-     *
-     *
-     * We deliberately chose not to provide build-in remote script loading (using uri
-     * locators). In it's philosophy, that sms.js's core should remain generic, we cannot
-     * make assumptions regarding the environment. However you can choose to implement it
-     * yourself (using the plugins system).
-     *
-     *
-     * --
-     * @since 1.0
-     */
-
-    /**
      * Safe reference to undefined
      *
      * @final

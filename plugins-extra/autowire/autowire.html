@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>smd.js - smd-autowire-plugin</title>
+    <script type="text/javascript" src="../../smd.js"></script>
+    <script type="text/javascript" src="smd-autowire-plugin.js"></script>
+</head>
+<body>
+
+<h1 id="message"></h1>
+
+<script type="text/javascript">
+
+    define.debuggingEnabled = true;
+
+    define("message", "I'm auto-wired");
+
+    define(function(message /* <-- autowired*/){
+        var el = document.getElementById("message");
+        el.innerText = el.innerText = message;
+    });
+
+</script>
+
+</body>
+</html>
