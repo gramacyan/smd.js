@@ -107,7 +107,7 @@
     define("smd-autowire-plugin", ["smd-plugins-plugin"], function(plugins) {
         var plugin =  {
             name: "smd-autowire-plugin",
-            order: -1001, // making sure module is updated before the initialization phase
+            order: -1001, // making sure the module deps are set before the smd-initializer-plugin's init-phase
             init: function(mod) {
                 if (!mod.deps && typeof mod.factory === "function") {
                     var params = parseParameters(mod.factory);

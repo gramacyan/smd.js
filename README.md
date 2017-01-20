@@ -67,7 +67,7 @@ define('my-plugin', ['smd-plugins-plugin'], function(plugins) {
 
 ```
 
-Take a look at the plugins-extra directory for some actual examples. You'll find following cases:
+Take a look at the plugins-extra directory for some actual examples:
 
 * [smd-mapping-plugin](./plugins-extra/mapping)
 * [smd-scan-plugin](./plugins-extra/scan)

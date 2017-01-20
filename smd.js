@@ -25,9 +25,7 @@
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
-
 */
-
 (function(root) {
 
     "use strict";
@@ -142,8 +140,6 @@
         }
     };
 
-
-
     /**
      * Wrapper/delegate to call our registered plugins' lifecycle handlers.
      *
@@ -201,12 +197,9 @@
         }
     };
 
-
-
-
-
-
-
+    /**
+     * Default plugin for initializing a module
+     */
     var initializerPlugin = {
         name: "smd-initializer-plugin",
         order: -1000,
@@ -315,11 +308,6 @@
     };
     pluginsPlugin.register(initializerPlugin);
 
-
-
-
-
-
     /**
      * Default plugin for in-memory store of the resolved module's factory results
      */
@@ -353,17 +341,6 @@
     };
     registryPlugin.registry["smd-registry-plugin"] = registryPlugin; // register self
     pluginsPlugin.register(registryPlugin);
-
-
-
-
-
-
-
-
-
-
-
 
     // ------------------------------------------------------------------------
     // EXPORT
