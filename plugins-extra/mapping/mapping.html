@@ -5,7 +5,6 @@
     <title>smd.js - smd-mapping-plugin</title>
     <script type="text/javascript" src="../../smd.js"></script>
     <script type="text/javascript" src="smd-mapping-plugin.js"></script>
-    <script type="text/javascript" src="smd-autowire-plugin.js"></script>
 </head>
 <body>
 
@@ -32,8 +31,7 @@
         plugin.map("superDuperModule_1_1", "superDuperModule");
     });
 
-    // Autowired dep
-    define(function(superDuperModule) {
+    define(["superDuperModule"], function(superDuperModule) {
         document.getElementById("message").innerText = superDuperModule;
     });
 

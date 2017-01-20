@@ -5,7 +5,9 @@ Allows annotating factory functions and write handlers for them.
 ```
 define(["smd-annotate-plugin"], function(plugin) {
     plugin.handle("@AssertNotNull", function(module_id, factory_result) {
-        assert(factory_result !== null);
+        if (factory_result === null) {
+            throw new Error("Assert error -- factory-result is null, module=" + module_id);
+        }
     });
 });
 

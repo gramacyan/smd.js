@@ -89,13 +89,13 @@
         var plugin =  {
             name: "smd-annotate-plugin",
             order: -1001,
-            moduleAnnotationsMap: {/* < module-id, [annotations > */},
-            handlers: {},
+            _moduleAnnotationsMap: {/* < module-id, [annotations > */},
+            _handlers: {},
             handle: function(annotation, handler) {
-                if (typeof this.handlers[annotation] === "undefined") {
-                    this.handlers[annotation] = [];
+                if (typeof this._handlers[annotation] === "undefined") {
+                    this._handlers[annotation] = [];
                 }
-                this.handlers[annotation].push(handler);
+                this._handlers[annotation].push(handler);
             },
             init: function(mod) {
                 if (typeof mod.factory !== "function")
@@ -103,13 +103,13 @@
                 var annotations = parseAnnotations(mod.factory);
                 if (annotations.length > 0) {
                     define.debug("[%] Found annotations [%] in %", this.name, annotations, mod.id);
-                    this.moduleAnnotationsMap[mod.id] = annotations;
+                    this._moduleAnnotationsMap[mod.id] = annotations;
                 }
             },
             resolve: function(id, value, ms) {
-                if (!this.moduleAnnotationsMap[id]) return;
-                var handlers = this.handlers;
-                this.moduleAnnotationsMap[id].forEach(function(annotation) {
+                if (!this._moduleAnnotationsMap[id]) return;
+                var handlers = this._handlers;
+                this._moduleAnnotationsMap[id].forEach(function(annotation) {
                     var fns = handlers[annotation];
                     if (fns && fns.length > 0) {
                         fns.forEach(function(handler) {
@@ -117,7 +117,7 @@
                         });
                     }
                 });
-                delete this.moduleAnnotationsMap[id];
+                delete this._moduleAnnotationsMap[id];
             }
         };
         plugins.register(plugin);

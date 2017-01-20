@@ -47,11 +47,11 @@
         var plugin = {
             name: "smd-mapping-plugin",
             order: -1001, // hit before registry
-            mapping: {},
+            _mapping: {},
             map: function(a, b) {
                 define.debug("[%] Mapped % <-> %", this.name, a, b);
-                this.mapping[a] = b;
-                this.mapping[b] = a;
+                this._mapping[a] = b;
+                this._mapping[b] = a;
                 // check if the module (a) was already resolved
                 var v = registry.registry[a];
                 if (typeof v !== "undefined") {
@@ -62,7 +62,7 @@
             // mapped loading
             load: function(id) {
                 var mapped;
-                if (mapped = this.mapping[id]) {
+                if (mapped = this._mapping[id]) {
                     var r = registry.registry[mapped];
                     if (r !== undefined) {
                         return r;
@@ -71,7 +71,7 @@
             },
             // mapped assignment
             resolve: function(id, val) {
-                var mapped = this.mapping[id];
+                var mapped = this._mapping[id];
                 if (mapped) {
                     registry.registry[mapped] = val;
                 }
