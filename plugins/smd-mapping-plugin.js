@@ -43,28 +43,27 @@
      *
      */
 
-    define("smd-mapping-plugin", ["smd-registry-plugin"], function(registryPlugin) {
-
-        return {
+    define("smd-mapping-plugin", ["smd-plugins-plugin", "smd-registry-plugin"], function(plugins, registry) {
+        var plugin = {
             name: "smd-mapping-plugin",
-            order: -1000,
+            order: -1001, // hit before registry
             mapping: {},
             map: function(a, b) {
                 define.debug("[%] Mapped % <-> %", this.name, a, b);
                 this.mapping[a] = b;
                 this.mapping[b] = a;
                 // check if the module (a) was already resolved
-                var v = registryPlugin.registry[a];
+                var v = registry.registry[a];
                 if (typeof v !== "undefined") {
                     // let's also assign the value it to the mapping target (b)
-                    registryPlugin.registry[b] = v;
+                    registry.registry[b] = v;
                 }
             },
             // mapped loading
             load: function(id) {
                 var mapped;
                 if (mapped = this.mapping[id]) {
-                    var r = registryPlugin.registry[mapped];
+                    var r = registry.registry[mapped];
                     if (r !== undefined) {
                         return r;
                     }
@@ -74,14 +73,12 @@
             resolve: function(id, val) {
                 var mapped = this.mapping[id];
                 if (mapped) {
-                    registryPlugin.registry[mapped] = val;
+                    registry.registry[mapped] = val;
                 }
             }
         };
-    });
-
-    define(["smd-mapping-plugin"], function(plugin) {
-        define.plugin(plugin);
+        plugins.register(plugin);
+        return plugin;
     });
 
 })(this);

@@ -104,10 +104,10 @@
      * Take a look at the mapping-plugin if you want to to remap module-ids.
      *
      */
-    define("smd-autowire-plugin", function() {
-        return {
+    define("smd-autowire-plugin", ["smd-plugins-plugin"], function(plugins) {
+        var plugin =  {
             name: "smd-autowire-plugin",
-            order: -500,
+            order: -1001, // making sure module is updated before the initialization phase
             init: function(mod) {
                 if (!mod.deps && typeof mod.factory === "function") {
                     var params = parseParameters(mod.factory);
@@ -118,10 +118,8 @@
                 }
             }
         };
-    });
-
-    define(["smd-autowire-plugin"], function(plugin) {
-        define.plugin(plugin);
+        plugins.register(plugin);
+        return plugin;
     });
 
 })();

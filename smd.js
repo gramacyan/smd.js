@@ -40,50 +40,35 @@
      *      define (  id? , dependencies?, factory ) ;
      *
      *
-     * Compared to other AMD implementations smd.js tries to be small and framework
-     * independent. Out of the box it features non-linear module definitions and
-     * dependency management using timeouts. It does not feature loader support.
+     * Compared to other AMD implementations smd.js aims to be small, extensible and
+     * framework independent. Out of the box it features non-linear module definitions
+     * and dependency management using timeouts.
      *
-     *      define ( "module" , [ "dependency" ], function(dep) {
+     *      define ( "my-module" , [ "my-dependency" ], function(dep) {
      *          dep.touch();
      *      } )
-     *      define ( "dependency" , function() { ... } );
+     *      define ( "my-dependency" , function() { ... } );
      *
      *
-     * smd.js deliberately chose not to provide build-in file-based or remote script
-     * loading (using uri locators). There already are existing libraries for that, but
-     * more importantly, build tools like file-concatenation do not play well with uri
-     * dependencies.
+     * When a module is defined it will go through a series of life-cycle phases before
+     * being ready to use. These will be handled by the build-in plugin system. In fact
+     * smd.js's core features are actually plugin-ins:
      *
-     * Consider following:
+     *  smd-plugins-plugin          Keeps track of all plugins and delegates the module
+     *                              life-cycle to the plugins.
      *
-     *  src/myApp.js
-     *      define ( "myApp" , [ "./other/myDep.js" ], function(dep) { ... } );
+     *  smd-initializer-plugin      Tries to initialize a module by first validating
+     *                              dependency ready-state and calling the factory method.
+     *                              It has a retry mechanism using timeouts.
      *
-     *  src/other/myDep.js
-     *      define ( "myDep" , function(dep) { ... } );
-     *
-     *  build/concatenated.js
-     *      define ( "myDep" , function(dep) { ... } );
-     *      define ( "myApp" , [ "./other/myDep.js" ], function(dep) { ... } );
+     *  smd-registry-plugin         A basic in memory store/loader that keeps track of
+     *                              all initialized modules.
      *
      *
-     * In the plugins directory you'll find some developer add-ons. However they may not be
-     * fully compatible with some environments and/or build tools. So use with caution.
-     *
-     * --
-     *
-     * Terminology:
-     *
-     *  Module: essentially the combination of parameters provided to the define statement
-     *          existing out of an id, dependency-array and a factory method (or immediate
-     *          assignment).
-     *
-     *  Plugin: user defined behavior of a module's lifecycle. Existing out of
-     *          initialization, dependency-loading, and ready-state handling.
-     *
-     *  Looping: awaiting the ready state of a dependency. Since smd.js allows non-linear
-     *          module definition it has to wait until a resource becomes available.
+     * We deliberately chose not to provide build-in remote script loading (using uri
+     * locators). In it's philosophy, that sms.js's core should remain generic, we cannot
+     * make assumptions regarding the environment. However you can choose to implement it
+     * yourself (using the plugins system).
      *
      *
      * --
@@ -91,28 +76,12 @@
      */
 
     /**
-     * Overwrite-safe reference to undefined
+     * Safe reference to undefined
      *
      * @final
      * @type {undefined}
      */
     var UNSET;
-
-    /**
-     * This array hold our modules that are queued for initialization.
-     */
-    var _modules = [];
-
-    /**
-     * An ordered array of self & user defined plugins.
-     */
-    var _plugins = [];
-
-    /**
-     * Reference to our loop/interval instance.
-     */
-    var _loop;
-
 
     /**
      * A string generator used for generating ids for anonymous declared modules.
@@ -147,20 +116,9 @@
         return true;
     }
 
-    /**
-     * Debug logging to console. Only logs if define.debug is flagged true (default=false).
-     *
-     * @param msg
-     */
-    function debug(msg) {
-        if (define.debuggingEnabled && console) {
-            // interpolate % in msg with arguments[1+]
-            for (var i = 1; i < arguments.length; i++) {
-                msg = msg.replace('%', arguments[i]);
-            }
-            (console.debug ? console.debug : console.log)(msg);
-        }
-    }
+
+    // ----------------------------------
+
 
     /**
      * The define function according to AMD specification. Id and dependencies parameters are optional.
@@ -200,29 +158,10 @@
             factory: factory,
             createdAt: new Date().getTime()
         };
-        PLUGINS.init(module);
-        _modules.push(module);
-        tryInitialize(module);
+        pluginsPlugin.init(module);
     }
 
-    /**
-     * When a module initialization times out this function will be called and all further processing
-     * by smd.js is halted. Override this function when you want to divert default behavior.
-     *
-     * @param id
-     * @param elapsed
-     */
-    define.onTimeout = function(id, elapsed) {
-        var message = "Timed out after %1ms trying to initialize '%2', make sure your dependencies are set up correctly".replace('%1', elapsed).replace('%2', id);
-        throw new Error(message);
-    };
 
-    /**
-     * Default timeout before onTimeout is called.
-     *
-     * @type {number}
-     */
-    define.defaultTimeout = 2500;
 
 
     /**
@@ -231,84 +170,22 @@
      * @type {boolean}
      */
     define.debuggingEnabled = false;
-    define.debug = debug;
-
-
     /**
-     * Initializes the module by first loading dependencies. When successful the factory function will be called and
-     * it's result directed to the plugins' resolve method. If the module cannot be initialized this function will
-     * return false.
+     * Debug logging to console. Only logs if define.debug is flagged true (default=false).
      *
-     * @param module
-     * @returns {boolean}
+     * @param msg
      */
-    function tryInitialize(module) {
-        if (module.initialized) {
-            return true;
-        }
-        module.locked = true;
-        var factory = module.factory;
-        var dependencies = [];
-        if (module.deps) {
-            for (var i = 0, l = module.deps.length; i < l; i++) {
-                var dep = PLUGINS.load(module.deps[i], module);
-                if (dep === UNSET) {
-                    module.locked = false;
-                    startLoop();
-                    return false; // abort! We'll initialize later when the dep is ready
-                }
-                dependencies[i] = dep;
+    var debug = define.debug = function debug(msg) {
+        if (define.debuggingEnabled && console) {
+            // interpolate % in msg with arguments[1+]
+            for (var i = 1; i < arguments.length; i++) {
+                msg = msg.replace('%', arguments[i]);
             }
+            (console.debug ? console.debug : console.log)(msg);
         }
-        var r = factory.apply(module, dependencies);
-        var ms = new Date().getTime() - module.createdAt;
-        if (r === UNSET) {
-            r = null; // Maybe there is no return statement?, let's set it to something else but undefined!
-        }
-        if (module.id) {
-            PLUGINS.resolve(module.id, r, ms);
-        }
-        module.locked = false;
-        return (module.initialized = true);
-    }
+    };
 
-    /**
-     * Start recursively handling our modules queue, automatically stopping if the queue is empty or a
-     * module's timeout is reached (calling the onTimeout handler).
-     */
-    function startLoop() {
-        if (_loop) { // already working
-            return;
-        }
-        var fn = function() {
-            var now = new Date().getTime();
-            for (var i = 0, l = _modules.length; i < l; i++) {
-                var module = _modules.shift();
-                if (!tryInitialize(module)) {
-                    var elapsed = now - module.createdAt;
-                    if (elapsed > define.defaultTimeout) {
-                        stopLoop();
-                        define.onTimeout(module.id, elapsed);
-                        break;
-                    }
-                    _modules.push(module); // to the tail!
-                }
-            }
-            if (_modules.length == 0) {
-                stopLoop();
-                return;
-            }
-        };
-        _loop = setInterval(fn, 250);
-    }
 
-    /**
-     * Stops the initializer loop
-     */
-    function stopLoop() {
-        clearInterval(_loop); // kill loop.
-        _loop = undefined;
-    }
 
     /**
      * Wrapper/delegate to call our registered plugins' lifecycle handlers.
@@ -319,78 +196,188 @@
      *      resolve     When the module is ready this function is called
      *
      *
-     * @type {{init: PLUGINS.init, load: PLUGINS.load, resolve: PLUGINS.resolve}}
      */
-    var PLUGINS = {
-        _count: {},
+    var pluginsPlugin = {
+        name: "smd-plugins-plugin",
+        order: -10000000,
+        plugins: [],
+        /**
+         * Setter method to register a plugin. The specified plugin should contain at least one of following methods:
+         *
+         *  order       Sorts the instance relative to the other registered plugins
+         *  init        Initializer handler when the define statement is called
+         *  load        Called when a dependency needs to be loaded
+         *  resolve     When the module is ready this function is called
+         *
+         * @param plugin
+         */
+        register: function(plugin) {
+            if (plugin.name) {
+                debug("[smd-plugins-plugin] Registering smd plugin '%'", plugin.name);
+            }
+            this.plugins.push(plugin);
+            this.plugins.sort(function(a, b) { return (a["order"] ? a["order"] : 0) - (b["order"] ? b["order"] : 0); });
+        },
         init: function(module) {
-            debug("[smd-core] Initializing module '%', dependencies: %",
-                module.id, (module.deps ? "[" + module.deps.join() + "]" : "none"));
-            _plugins.forEach(function(plugin) {
+            this.plugins.forEach(function(plugin) {
                 if (typeof plugin.init === "function")
                     plugin.init(module);
             });
         },
         load : function(id) {
-            var c = this._count[id];
-            if (!c) c = 0;
-            c++;
-            debug("[smd-core] Loading dependency '%', retries=%", id, c);
-            for (var i = 0, l = _plugins.length; i < l; i++) {
-                var plugin = _plugins[i];
+            for (var i = 0, l = this.plugins.length; i < l; i++) {
+                var plugin = this.plugins[i];
                 if (typeof plugin.load !== "function") {
                     continue;
                 }
                 var r = plugin.load(id);
                 if (r !== UNSET) {  // First result wins
-                    debug("[smd-core] Found dependency '%'", id);
-                    delete this._count[id];
                     return r;
                 }
             }
-            this._count[id] = c;
             return r;
         },
         resolve: function(id, value, ms) {
-            debug("[smd-core] Resolved module '%' in %ms", id, ms);
-            _plugins.forEach(function(plugin) {
+            this.plugins.forEach(function(plugin) {
                 if (typeof plugin.resolve === "function")
                     plugin.resolve(id, value, ms); });
         }
     };
 
-    /**
-     * Setter method to register a plugin. The plugin specified should contain following fields:
-     *
-     *  order       Sorts the instance relative to the other registered plugins
-     *  init        Initializer handler when the define statement is called
-     *  load        Called when a dependency needs to be loaded
-     *  resolve     When the module is ready this function is called
-     *
-     * @param plugin
-     */
-    define.plugin = function(plugin) {
-        if (plugin.name) {
-            debug("[smd-core] Attaching smd plugin '%'", plugin.name);
+
+
+
+
+
+
+    var initializerPlugin = {
+        name: "smd-initializer-plugin",
+        order: -1000,
+        todos: [],
+        _count: {},
+        retryInterval: 250,
+        defaultTimeout: 2500,
+        init: function(module) {
+            this.tryInitialize(module);
+        },
+        /**
+         * Initializes the module by first loading dependencies. When successful the factory function will be called and
+         * it's result directed to the plugins' resolve method. If the module cannot be initialized this function will
+         * return false.
+         *
+         * @param module
+         * @returns {boolean}
+         */
+        tryInitialize: function(module) {
+            if (module.initialized) {
+                return true;
+            }
+            var c = this._count[module.id];
+            if (!c) c = 0;
+            c++;
+            this._count[module.id] = c;
+            debug("[%] Initializing module '%', dependencies: %, (re)tries=%",
+                this.name, module.id, (module.deps ? "[" + module.deps.join() + "]" : "none"), c);
+
+            module.locked = true;
+            var factory = module.factory;
+            var dependencies = [];
+            if (module.deps) {
+                for (var i = 0, l = module.deps.length; i < l; i++) {
+                    var depId = module.deps[i];
+                    debug("[%] Loading dependency '%'", this.name, depId);
+                    var dep = pluginsPlugin.load(depId, module);
+                    if (dep === UNSET) {
+                        debug("[%] Failed initializing module '%', dependency '%' not ready",
+                            this.name, module.id, depId);
+                        // dependency is not ready, let's initialize this module later
+                        module.locked = false;
+                        this.todos.push(module);
+                        this.startLoop();
+                        return false;
+                    }
+                    debug("[%] Found dependency '%'", this.name, depId);
+                    dependencies[i] = dep;
+                }
+            }
+            var r = factory.apply(module, dependencies);
+            var ms = new Date().getTime() - module.createdAt;
+            if (r === UNSET) {
+                r = null; // Maybe there is no return statement?, let's set it to something else but undefined!
+            }
+            debug("[%] Successfully initialized module '%'", this.name, module.id);
+            pluginsPlugin.resolve(module.id, r, ms);
+            module.locked = false;
+            delete this._count[module.id];
+            return (module.initialized = true);
+        },
+        startLoop: function() {
+            if (this.loop) { // already working
+                return;
+            }
+            var self = this;
+            var modules = this.todos;
+            this.loop = setInterval(function() {
+                var now = new Date().getTime();
+                for (var i = 0, l = modules.length; i < l; i++) {
+                    var module = modules.shift();
+                    if (!self.tryInitialize(module)) {
+                        var elapsed = now - module.createdAt;
+                        if (elapsed > self.defaultTimeout) {
+                            self.stopLoop();
+                            self.onTimeout(module.id, elapsed);
+                            break;
+                        }
+                        modules.push(module); // to the tail!
+                    }
+                }
+                if (modules.length == 0) {
+                    self.stopLoop();
+                    return;
+                }
+            }, this.retryInterval);
+        },
+        /**
+         * Stops the initializer loop
+         */
+        stopLoop: function() {
+            clearInterval(this.loop); // kill loop.
+            this.loop = undefined;
+        },
+        /**
+         * When a module initialization times out this function will be called and all further processing
+         * by smd.js is halted. Override this function when you want to divert default behavior.
+         *
+         * @param id
+         * @param elapsed
+         */
+        onTimeout: function(id, elapsed) {
+            var message = "Timed out after %1ms trying to initialize '%2', make sure your dependencies are set up correctly".replace('%1', elapsed).replace('%2', id);
+            throw new Error(message);
         }
-        _plugins.push(plugin);
-        _plugins.sort(function(a, b) { return (a["order"] ? a["order"] : 0) - (b["order"] ? b["order"] : 0); });
     };
+    pluginsPlugin.register(initializerPlugin);
+
+
+
+
+
 
     /**
      * Default plugin for in-memory store of the resolved module's factory results
      */
     var registryPlugin = {
         name: "smd-registry-plugin",
-        order: -10000,
+        order: -1000,
         registry: {
-            "define": define
+            "define": define,
+            "smd-plugins-plugin": pluginsPlugin,
+            "smd-initializer-plugin": initializerPlugin
         },
         forget: function(id) {
             registry[id] = UNSET;
             delete registry[id];
         },
-        init: function(mod) {},
         load: function(id) {
             var r = this.registry[id];
             debug("[%] Looking up dependency '%' in registry", this.name, id);
@@ -408,16 +395,18 @@
         }
     };
     registryPlugin.registry["smd-registry-plugin"] = registryPlugin; // register self
-    define.plugin(registryPlugin); // add to plugins
+    pluginsPlugin.register(registryPlugin);
 
-    /**
-     * smd-logger
-     */
-    define("smd-logger", function() {
-        return {
-            debug: debug
-        }
-    });
+
+
+
+
+
+
+
+
+
+
 
     // ------------------------------------------------------------------------
     // EXPORT

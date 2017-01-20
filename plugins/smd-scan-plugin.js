@@ -43,22 +43,20 @@
      *      }
      *
      */
-    define("smd-scan-plugin", function() {
-
-        return {
+    define("smd-scan-plugin", ["smd-plugins-plugin"], function(plugins) {
+        var plugin = {
             name: "smd-scan-plugin",
             order: 0,
             load: function(id) {
                 define.debug("[%] Looking up dependency '%'", this.name, id);
                 if (root[id]) {
+                    define.debug("[%] Found dependency '%'", this.name, id);
                     return root[id];
                 }
             }
         };
-    });
-
-    define(["smd-scan-plugin"], function(plugin) {
-        define.plugin(plugin);
+        plugins.register(plugin);
+        return plugin;
     });
 
 })(this);
