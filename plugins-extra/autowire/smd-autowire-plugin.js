@@ -70,7 +70,7 @@
             if (c === ',' || c === ')') {
                 var arg = buffer;
                 if (arg) {
-                    params.push(arg.trim()); // making sure
+                    params.push(arg.trim());
                 }
                 buffer = '';
                 if (c === ')' ) {

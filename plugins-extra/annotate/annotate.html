@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>smd.js - smd-annotate-plugin</title>
+    <script type="text/javascript" src="../../smd.js"></script>
+    <script type="text/javascript" src="smd-annotate-plugin.js"></script>
+</head>
+<body>
+
+<h1 id="message"></h1>
+
+<script type="text/javascript">
+
+    define.debuggingEnabled = true;
+
+    define(["smd-annotate-plugin"], function(plugin) {
+        plugin.handle("@print", function(moduleId, factoryResult) {
+            document.getElementById("message").innerText = factoryResult;
+        });
+    });
+
+    define("myModule", function() {
+        "@print";
+        return "Hello World!";
+    });
+
+</script>
+
+</body>
+</html>

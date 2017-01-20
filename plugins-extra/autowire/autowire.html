@@ -17,8 +17,7 @@
     define("message", "I'm auto-wired");
 
     define(function(message /* <-- autowired*/){
-        var el = document.getElementById("message");
-        el.innerText = el.innerText = message;
+        document.getElementById("message").innerText = message;
     });
 
 </script>

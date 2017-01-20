@@ -72,3 +72,4 @@ Take a look at the plugins-extra directory for some actual examples:
 * [smd-mapping-plugin](./plugins-extra/mapping)
 * [smd-scan-plugin](./plugins-extra/scan)
 * [smd-autowire-plugin](./plugins-extra/autowire)
+* [smd-annotate-plugin](./plugins-extra/annotate)
