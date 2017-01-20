@@ -15,7 +15,9 @@ define( "my-module", ["my-dependency"], function(dep) {
     dep.touch();
 });
 // Ah, here it is
-define('my-dependency', function() { ... } );
+define('my-dependency', { 
+    touch: function() { /* blush response */ } 
+} );
 ```
 
 #### Life cycle & plugins
