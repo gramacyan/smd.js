@@ -60,7 +60,7 @@ define('my-plugin', ['smd-plugins-plugin'], function(plugins) {
         init: function(module) { ... },
         load: function(id) { ... },
         resolve: function(id, value, ms) { ... }
-    }
+    };
     plugins.register(it);
     return it;
 });

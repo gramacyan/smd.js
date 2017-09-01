@@ -1,7 +1,7 @@
 /*
- * smd-autowire-plugin.js v1.0
+ * smd-annotate-plugin.js v1.0
  *
- Copyright (c) 2016 by Benny Bangels
+ Copyright (c) 2017 by Benny Bangels
  https://github.com/gramacyan/smd.js
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,9 +26,15 @@
 
     "use strict";
 
+    /**
+     * Returns wether the specified char is a whitespace character
+     *
+     * @param c
+     * @returns {Boolean}
+     */
     function isWhitespace(c) {
         return c == '\n' || c == '\t' || c == '\n' || c == ' ';
-    };
+    }
 
     /**
      * This function parses the annotation(s) from a factory function
@@ -48,12 +54,12 @@
         if (s.indexOf("function") != 0) {
             throw new Error("factory should be a function");
         }
-        var inbody, inannot = false;
+        var inb, ina = false;
         while(i++ < s.length) {
             c = s.charAt(i);
-            if (!inbody) { // read until we are in block-stmt
+            if (!inb) { // read until we are in block-stmt
                 if (c === '{' ) {
-                    inbody = true;
+                    inb = true;
                 }
                 continue;
             }
@@ -61,17 +67,17 @@
                 continue;
             }
             if (c === '"') {
-                if (!inannot) {
-                    inannot = true;
+                if (!ina) {
+                    ina = true;
                     i++; // add correct char to buffer
                 } else {
-                    inannot = false;
+                    ina = false;
                     annotations.push(buffer.trim());
                     buffer = "";
                     continue;
                 }
             }
-            if (inannot) {
+            if (ina) {
                 buffer += s.charAt(i);
             } else {
                 if (!isWhitespace(c)) {

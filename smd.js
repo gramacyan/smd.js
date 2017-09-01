@@ -39,6 +39,14 @@
     var UNSET;
 
     /**
+     * ID Prefix for anonymous modules
+     *
+     * @final
+     * @type {String}
+     */
+    var ANON_ID_PREFIX = "_anon$";
+
+    /**
      * A string generator used for generating ids for anonymous declared modules.
      *
      * @returns {string}
@@ -60,7 +68,7 @@
      * @param types
      * @returns {boolean}
      */
-    function argsmatch(args, types) {
+    function matches(args, types) {
         if (args.length != types.length) return false;
         for (var i = 0, l = args.length; i < l; i++) {
             var p = types[i],
@@ -83,15 +91,15 @@
      */
     function define() {
         var id, deps, factory;
-        if (argsmatch(arguments, ["any"])) {
+        if (matches(arguments, ["any"])) {
             factory = arguments[0];
-        } else if (argsmatch(arguments, ["string", "any"])) {
+        } else if (matches(arguments, ["string", "any"])) {
             id = arguments[0];
             factory = arguments[1];
-        } else if (argsmatch(arguments, ["array", "any"])) {
+        } else if (matches(arguments, ["array", "any"])) {
             deps = arguments[0];
             factory = arguments[1];
-        } else if (argsmatch(arguments, ["string", "array", "any"])) {
+        } else if (matches(arguments, ["string", "array", "any"])) {
             id = arguments[0];
             deps = arguments[1];
             factory = arguments[2];
@@ -99,7 +107,7 @@
             throw new Error("Invalid arguments")
         }
         if (!id) {
-            id = "_anon$" + idgen();
+            id = ANON_ID_PREFIX + idgen();
         }
         if (typeof factory !== "function") { // Direct definition: define("theMagicNumber", 7);
             var res = factory;
@@ -166,10 +174,10 @@
          */
         register: function(plugin) {
             if (plugin.name) {
-                debug("[smd-plugins-plugin] Registering smd plugin '%'", plugin.name);
+                debug("[%] Registering smd plugin '%'", this.name, plugin.name);
             }
             this.plugins.push(plugin);
-            this.plugins.sort(function(a, b) { return (a["order"] ? a["order"] : 0) - (b["order"] ? b["order"] : 0); });
+            this.plugins.sort(function(a, b) { return (a["order"] || 0) - (b["order"] || 0); });
         },
         init: function(module) {
             this.plugins.forEach(function(plugin) {
@@ -193,7 +201,8 @@
         resolve: function(id, value, ms) {
             this.plugins.forEach(function(plugin) {
                 if (typeof plugin.resolve === "function")
-                    plugin.resolve(id, value, ms); });
+                    plugin.resolve(id, value, ms);
+            });
         }
     };
 
@@ -207,9 +216,7 @@
         _count: {},
         retryInterval: 250,
         defaultTimeout: 2500,
-        init: function(module) {
-            this.tryInitialize(module);
-        },
+
         /**
          * Initializes the module by first loading dependencies. When successful the factory function will be called and
          * it's result directed to the plugins' resolve method. If the module cannot be initialized this function will
@@ -218,12 +225,11 @@
          * @param module
          * @returns {boolean}
          */
-        tryInitialize: function(module) {
+        init: function(module) {
             if (module.initialized) {
                 return true;
             }
-            var c = this._count[module.id];
-            if (!c) c = 0;
+            var c = this._count[module.id] || 0;
             c++;
             this._count[module.id] = c;
             debug("[%] Initializing module '%', dependencies: %, (re)tries=%",
@@ -271,7 +277,7 @@
                 var now = new Date().getTime();
                 for (var i = 0, l = modules.length; i < l; i++) {
                     var module = modules.shift();
-                    if (!self.tryInitialize(module)) {
+                    if (!self.init(module)) {
                         var elapsed = now - module.createdAt;
                         if (elapsed > self.defaultTimeout) {
                             self.stopLoop();
@@ -331,7 +337,7 @@
             }
         },
         resolve: function (id, res) {
-            if (id.indexOf("_anon$") == 0) { // let's not register anonymous results
+            if (id.indexOf(ANON_ID_PREFIX) == 0) { // let's not register anonymous results
                 return;
             }
             debug("[%] Storing module '%' in registry", this.name, id);
