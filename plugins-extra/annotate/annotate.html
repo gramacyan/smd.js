@@ -8,19 +8,17 @@
 </head>
 <body>
 
-<h1 id="message"></h1>
-
 <script type="text/javascript">
 
     define.debuggingEnabled = true;
 
-    define(["smd-annotate-plugin"], function(plugin) {
-        plugin.handle("@print", function(moduleId, factoryResult) {
-            document.getElementById("message").innerText = factoryResult;
+    define("print-support", ["smd-annotate-plugin"], function(plugin) {
+        plugin.handle("@print", function(id, res) {
+            document.body.innerHTML += res;
         });
     });
 
-    define("myModule", function() {
+    define(["print-support"], function() {
         "@print";
         return "Hello World!";
     });

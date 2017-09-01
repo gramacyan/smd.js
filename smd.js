@@ -125,8 +125,6 @@
     }
 
 
-
-
     /**
      * Flag to enable/disable debug logging.
      *
@@ -156,19 +154,13 @@
      *      load        Called when a dependency needs to be loaded, first result wins
      *      resolve     When the module is ready this function is called
      *
-     *
      */
     var pluginsPlugin = {
         name: "smd-plugins-plugin",
         order: -10000000,
         plugins: [],
         /**
-         * Setter method to register a plugin. The specified plugin should contain at least one of following methods:
-         *
-         *  order       Sorts the instance relative to the other registered plugins
-         *  init        Initializer handler when the define statement is called
-         *  load        Called when a dependency needs to be loaded
-         *  resolve     When the module is ready this function is called
+         * Setter method to register a plugin
          *
          * @param plugin
          */
@@ -181,8 +173,8 @@
         },
         init: function(module) {
             this.plugins.forEach(function(plugin) {
-                if (typeof plugin.init === "function")
-                    plugin.init(module);
+                if (typeof plugin.init !== "function") return;
+                plugin.init(module);
             });
         },
         load : function(id) {
@@ -200,8 +192,8 @@
         },
         resolve: function(id, value, ms) {
             this.plugins.forEach(function(plugin) {
-                if (typeof plugin.resolve === "function")
-                    plugin.resolve(id, value, ms);
+                if (typeof plugin.resolve !== "function") return;
+                plugin.resolve(id, value, ms);
             });
         }
     };
@@ -227,7 +219,16 @@
          */
         init: function(module) {
             if (module.initialized) {
+                return;
+            }
+            this.tryInitialize(module);
+        },
+        tryInitialize: function(module) {
+            if (module.initialized) {
                 return true;
+            }
+            if (module.locked) {
+                return false;
             }
             var c = this._count[module.id] || 0;
             c++;
@@ -272,22 +273,22 @@
                 return;
             }
             var self = this;
-            var modules = this.todos;
+            var todos = this.todos;
             this.loop = setInterval(function() {
                 var now = new Date().getTime();
-                for (var i = 0, l = modules.length; i < l; i++) {
-                    var module = modules.shift();
-                    if (!self.init(module)) {
+                for (var i = 0, l = todos.length; i < l; i++) {
+                    var module = todos.shift();
+                    if (!self.tryInitialize(module)) {
                         var elapsed = now - module.createdAt;
                         if (elapsed > self.defaultTimeout) {
                             self.stopLoop();
                             self.onTimeout(module.id, elapsed);
                             break;
                         }
-                        modules.push(module); // to the tail!
+                        todos.push(module); // requeue
                     }
                 }
-                if (modules.length == 0) {
+                if (todos.length == 0) {
                     self.stopLoop();
                     return;
                 }
@@ -356,7 +357,7 @@
     } else {
         // for browsers
         if (typeof root['define'] === 'function' && root['define'].amd) {
-            throw new Error("smd.js is not compatible with another AMD loader");
+            throw new Error("smd.js is not compatible with another AMD implementation");
         }
         root['define'] = define;
     }
