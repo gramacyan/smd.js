@@ -22,40 +22,5 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-(function(root) {
-
-    "use strict";
-
-    /**
-     * The smd-scan-plugin tries to load specified dependency-id(s) from the global-scope.
-     *
-     * This can come in handy when waiting for 3rd-party libraries (1) (using script-appending) or
-     * await ready-state locks (2).
-     *
-     * For example:
-     *
-     *      define(["jQuery"], function() { ... }); (1)
-     *
-     *      define(["lock"], function() { .., });  (2)
-     *      window.onload = function() {
-     *          window.lock = "unlocked";
-     *      }
-     *
-     */
-    define("smd-scan-plugin", ["smd-plugins-plugin"], function(plugins) {
-        var plugin = {
-            name: "smd-scan-plugin",
-            order: 0,
-            load: function(id) {
-                define.debug("[%] Looking up dependency '%'", this.name, id);
-                if (root[id]) {
-                    define.debug("[%] Found dependency '%'", this.name, id);
-                    return root[id];
-                }
-            }
-        };
-        plugins.register(plugin);
-        return plugin;
-    });
-
-})(this);
+// Compressed using https://jscompress.com/
+!function(n){"use strict";define("smd-scan-plugin",["smd-plugins-plugin"],function(e){var i={name:"smd-scan-plugin",order:0,load:function(e){if(define.debug("[%] Looking up dependency '%'",this.name,e),n[e])return define.debug("[%] Found dependency '%'",this.name,e),n[e]}};return e.register(i),i})}(this);

@@ -131,6 +131,8 @@
      * @type {boolean}
      */
     define.debuggingEnabled = false;
+    var splash_shown = false;
+
     /**
      * Debug logging to console. Only logs if define.debug is flagged true (default=false).
      *
@@ -138,6 +140,19 @@
      */
     var debug = define.debug = function debug(msg) {
         if (define.debuggingEnabled && console) {
+            if (!splash_shown) {
+                console.debug(''
+                + "                    _   _     \n"
+                + "                   | | (_)    \n"
+                + "  ___ _ __ ___   __| |  _ ___ \n"
+                + " / __| '_ ` _ \\ / _` | | / __|\n"
+                + " \\__ \\ | | | | | (_| |_| \\__ \\\n"
+                + " |___/_| |_| |_|\\__,_(_) |___/\n"
+                + "                      _/ |    \n"
+                + "                     |__/     \n"
+                + " -----------------------------\n");
+                splash_shown = true;
+            }
             // interpolate % in msg with arguments[1+]
             for (var i = 1; i < arguments.length; i++) {
                 msg = msg.replace('%', arguments[i]);

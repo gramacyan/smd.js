@@ -1,5 +1,5 @@
 /*
- * smd-scan-plugin.js v1.0
+ * smd-autowire-plugin.js v1.0
  *
  Copyright (c) 2016 by Benny Bangels
  https://github.com/gramacyan/smd.js
@@ -22,40 +22,5 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-(function(root) {
-
-    "use strict";
-
-    /**
-     * The smd-scan-plugin tries to load specified dependency-id(s) from the global-scope.
-     *
-     * This can come in handy when waiting for 3rd-party libraries (1) (using script-appending) or
-     * await ready-state locks (2).
-     *
-     * For example:
-     *
-     *      define(["jQuery"], function() { ... }); (1)
-     *
-     *      define(["lock"], function() { .., });  (2)
-     *      window.onload = function() {
-     *          window.lock = "unlocked";
-     *      }
-     *
-     */
-    define("smd-scan-plugin", ["smd-plugins-plugin"], function(plugins) {
-        var plugin = {
-            name: "smd-scan-plugin",
-            order: 0,
-            load: function(id) {
-                define.debug("[%] Looking up dependency '%'", this.name, id);
-                if (root[id]) {
-                    define.debug("[%] Found dependency '%'", this.name, id);
-                    return root[id];
-                }
-            }
-        };
-        plugins.register(plugin);
-        return plugin;
-    });
-
-})(this);
+// Compressed using https://jscompress.com/
+!function(){"use strict";function n(n){var i,t=[],r=n.toString(),e=0,f="";if(0!=r.indexOf("function"))throw new Error("factory should be a function");for(;e++<r.length;)if("("!==(i=r.charAt(e))){if("\n"!==i){if("/"===i){var u,o=r.charAt(e+1);if("*"===o?u="*/":"/"===o&&(u="\n"),u){var a=r.substring(e);e=e+a.substring(a,a.indexOf(u)+u.length).length-1;continue}}if(","!==i&&")"!==i)f+=r.charAt(e);else{var s=f;if(s&&t.push(s.trim()),f="",")"===i)break}}}else f="";return t}define("smd-autowire-plugin",["smd-plugins-plugin"],function(i){var t={name:"smd-autowire-plugin",order:-1001,init:function(i){if(!i.deps&&"function"==typeof i.factory){var t=n(i.factory);t&&t.length>0&&(define.debug("[%] Auto-wiring [%] in %",this.name,t,i.id),i.deps=t)}}};return i.register(t),t})}();
