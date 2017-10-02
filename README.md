@@ -1,7 +1,7 @@
 # smd.js
 
 **smd.js** or `Simple Module Definition` is a module definition library implementing the
-**AMD** (`Abstract Module Definition`) specification:
+**AMD** (`Asynchronous Module Definition`) specification:
 
 > define (  id? , dependencies?, factory ) ;
 

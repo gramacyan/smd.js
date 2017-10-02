@@ -124,6 +124,15 @@
         pluginsPlugin.init(module);
     }
 
+    /**
+     * An indicator that the define function conforms to the AMD API.
+     *
+     * @type {object}
+     */
+    define.amd = {
+        variant: "smd",
+        version: "1.0"
+    };
 
     /**
      * Flag to enable/disable debug logging.
